@@ -1,0 +1,31 @@
+{
+  "name": "database",
+  "version": "0.1.0-alpha",
+  "description": "A database for Minecraft Bedrock Edition that uses the dynamic property API.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "minecraft",
+    "bedrock",
+    "mc",
+    "mcbe",
+    "mcpe",
+    "database",
+    "db",
+    "data",
+    "dynamic",
+    "property"
+  ],
+  "author": "Kevin",
+  "license": "MIT",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "directories": {
+    "lib": "lib"
+  }
+}
