@@ -13,6 +13,7 @@ export class DatabaseHeader {
 	}
 	
 	get isValid(): boolean {
+		if(this.database._cachedHeaderData) return true;
 		return Boolean(world.getDynamicProperty(this.rawId));
 	}
 	

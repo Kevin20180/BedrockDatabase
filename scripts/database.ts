@@ -14,18 +14,27 @@ export class Database<T extends DataTypes = any> {
 		this.header = new DatabaseHeader(this, this.id);
 	}
 
+	get isValid(): boolean {
+		return this.header.isValid;
+	}
+
 	get isOpen(): boolean {
 		return this._isOpen;
 	}
 	
 	open() {
+		if(!this.isValid) throw Error('This database is invalid.');
 		if(this.isOpen) return;
+
 		this._isOpen = true;
 		try {
 			this.header.getData();
-		} catch {
+		} catch(e) {
 			this.close();
+			throw e
 		}
+
+
 	}
 
 	close() {
@@ -36,22 +45,25 @@ export class Database<T extends DataTypes = any> {
 	}
 	
 	getDataSync(): T | undefined {
+		if(!this.isValid) throw Error('This database is invalid.');
 		if(!this.isOpen) throw Error('The database is closed.');
 		const headerData = this.header.getData();
 		return;
 	}
 
 	getData(): T | undefined {
+		if(!this.isValid) throw Error('This database is invalid.');
 		if(!this.isOpen) throw Error('The database is closed.');
 		return undefined;
 	}
 
 	setData(data: T) {
+		if(!this.isValid) throw Error('This database is invalid.');
 		if(!this.isOpen) throw Error('The database is closed.');
 	}
 
 	save() {
-
+		if(!this.isValid) throw Error('This database is invalid.');
 	}
 }
 
