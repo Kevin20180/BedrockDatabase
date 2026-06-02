@@ -34,5 +34,8 @@
   "bugs": {
     "url": "https://github.com/Kevin20180/BedrockDatabase/issues"
   },
-  "homepage": "https://github.com/Kevin20180/BedrockDatabase#readme"
+  "homepage": "https://github.com/Kevin20180/BedrockDatabase#readme",
+  "dependencies": {
+    "@minecraft/server": "^2.0.0"
+  }
 }
