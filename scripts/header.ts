@@ -27,14 +27,14 @@ export class DatabaseHeader {
 
 		if(typeof rawData !== 'string') throw TypeError('Invalid header data.');
 		
-		let data = JSON.parse(rawData);
+		let data = JSON.parse(rawData) as DatabaseHeaderData;
 		if(typeof data !== 'object') throw TypeError('Invalid header data.');
 
-		if(data.id !== 'string') data.id = this.id;
-		if(data.createdAt !== 'string') throw TypeError("Invalid type of property 'created_at' in the header data.");
-		if(data.updated_at !== 'string') throw TypeError("Invalid type of property 'updated_at' in the header data.");
-		if(data.chunks !== 'number') throw TypeError("Invalid type of property 'chunks' in the header data.");
-		if(data.data_type === null || !['boolean', 'number', 'string', 'object'].includes(data.data_type)) throw TypeError("Invalid type of property 'data_type' in the header data.");
+		if(typeof data.id !== 'string') data.id = this.id;
+		if(typeof data.created_at !== 'string') throw TypeError("Invalid type of property 'created_at' in the header data.");
+		if(typeof data.updated_at !== 'string') throw TypeError("Invalid type of property 'updated_at' in the header data.");
+		if(typeof data.chunks !== 'number') throw TypeError("Invalid type of property 'chunks' in the header data.");
+		if(data.data_type === null || !['boolean', 'number', 'string', 'object', 'undefined'].includes(data.data_type)) throw TypeError("Invalid type of property 'data_type' in the header data.");
 
 		if(this.database.isOpen) this.database._cachedHeaderData = data;
 
@@ -86,5 +86,5 @@ export interface DatabaseHeaderData {
 	created_at: string,
 	updated_at: string,
 	chunks: number,
-	data_type: "boolean" | "number" | "string" | "object"
+	data_type: PrimitiveDataTypes
 }

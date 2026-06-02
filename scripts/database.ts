@@ -31,10 +31,8 @@ export class Database<T extends DataTypes = any> {
 			this.header.getData();
 		} catch(e) {
 			this.close();
-			throw e
+			throw e;
 		}
-
-
 	}
 
 	close() {
@@ -44,11 +42,37 @@ export class Database<T extends DataTypes = any> {
 		this._cachedHeaderData = undefined;
 	}
 	
-	getDataSync(): T | undefined {
+	_getDataSync(): T | undefined {
 		if(!this.isValid) throw Error('This database is invalid.');
-		if(!this.isOpen) throw Error('The database is closed.');
-		const headerData = this.header.getData();
-		return;
+
+		let dataType = this.header.dataType;
+
+		if(['boolean', 'number'].includes(dataType)) {
+			return world.getDynamicProperty('[db][data][0]' + this.id) as T;
+		}
+		else if(dataType === 'string' || dataType === 'object') {
+			let rawData = '';
+			let chunks = this.header.chunks;
+
+			for(let i = 0; i < chunks; i++) {
+				let chunkData = world.getDynamicProperty(`[db][data][${i}]${this.id}`);
+				if(chunkData === undefined) throw Error(`Unable to read chunk ${i}.`);
+				rawData += chunkData;
+			}
+
+			if(dataType === 'string') {
+				return rawData as T;
+			} else {
+				return JSON.parse(rawData) as T;
+			}
+		}
+		else {
+			return undefined;
+		}
+	}
+
+	_setDataSync(data: DataTypes) {
+
 	}
 
 	getData(): T | undefined {
@@ -64,6 +88,8 @@ export class Database<T extends DataTypes = any> {
 
 	save() {
 		if(!this.isValid) throw Error('This database is invalid.');
+		if(!this._cachedData) return;
+		this._setDataSync(this._cachedData);
 	}
 }
 
@@ -75,4 +101,4 @@ export type DataTypes =
   | DataTypes[]
   | undefined
 
-export type PrimitiveDataTypes = 'boolean' | 'number' | 'string' | 'object';
+export type PrimitiveDataTypes = 'boolean' | 'number' | 'string' | 'object' | 'undefined';
