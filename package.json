@@ -1,5 +1,5 @@
 {
-  "name": "database",
+  "name": "mcbe-database",
   "version": "0.1.0-alpha",
   "description": "A database for Minecraft Bedrock Edition that uses the dynamic property API.",
   "main": "dist/index.js",
