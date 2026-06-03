@@ -71,8 +71,51 @@ export class Database<T extends DataTypes = any> {
 		}
 	}
 
-	_setDataSync(data: DataTypes) {
+	_setDataSync(data: T) {
+		if(!this.isValid) throw Error('This database is invalid.');
 
+		let dataType = typeof data;
+
+		if(data === null || ['boolean', 'number', 'undefined'].includes(dataType)) {
+			let chunks = this.header.chunks;
+
+			if(chunks > 1) {
+				for(let i = 1; i < chunks; i++) {
+					world.setDynamicProperty(`[db][data][${i}]${this.id}`);
+				}
+				this.header.chunks = 1;
+			}
+
+			world.setDynamicProperty('[db][data][0]' + this.id, data as boolean | number | undefined);
+		}
+		else if(['string', 'object'].includes(dataType)) {
+			let rawData: string;
+			if(dataType === 'object') rawData = JSON.stringify(data)
+			else rawData = data as string;
+
+			let oldChunks = this.header.chunks;
+			let chunks = Math.ceil(rawData.length / 32767);
+			console.log('chunks', chunks)
+
+			if(oldChunks > chunks) {
+				for(let i = chunks; i < oldChunks; i++) {
+					world.setDynamicProperty(`[db][data][${i}]${this.id}`);
+				}
+			}
+
+			for(let i = 0; i < chunks; i++) {
+				world.setDynamicProperty(`[db][data][${i}]${this.id}`, rawData.slice(0, 32767));
+				rawData = rawData.slice(32767);
+			}
+
+			this.header.chunks = chunks;
+		}
+		else {
+			throw TypeError("Argument 'data' must be of type DataTypes.");
+		}
+
+		this.header.dataType = dataType as PrimitiveDataTypes;
+		this.header.updatedAt = new Date();
 	}
 
 	getData(): T | undefined {

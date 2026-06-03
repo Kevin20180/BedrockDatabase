@@ -19,7 +19,7 @@ export class DatabaseHeader {
 	
 	getData(): DatabaseHeaderData {
 		if(this.database.isOpen && this.database._cachedHeaderData) {
-			return { ...this.database._cachedData };
+			return { ...this.database._cachedHeaderData };
 		}
 
 		let rawData = world.getDynamicProperty(this.rawId);
@@ -46,7 +46,7 @@ export class DatabaseHeader {
 		if(!this.isValid) throw Error("This database header is invalid.");
 
 		if(this.database.isOpen) this.database._cachedHeaderData = { ...data }
-		world.setDynamicProperty(JSON.stringify(data));
+		world.setDynamicProperty(this.rawId, JSON.stringify(data));
 	}
 
 	get createdAt(): Date {
