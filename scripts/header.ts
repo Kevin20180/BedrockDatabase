@@ -5,11 +5,13 @@ export class DatabaseHeader {
 	readonly database: Database;
 	readonly id: string;
 	readonly rawId: string;
+	_modified: boolean;
 	
 	constructor(db: Database, id: string) {
 		this.database = db;
 		this.id = id;
 		this.rawId = `[db][header]${id}`;
+		this._modified = false;
 	}
 	
 	get isValid(): boolean {
@@ -45,8 +47,22 @@ export class DatabaseHeader {
 		if(typeof data !== 'object') throw TypeError("Argument 'data' must be of type HeaderData.");
 		if(!this.isValid) throw Error("This database header is invalid.");
 
-		if(this.database.isOpen) this.database._cachedHeaderData = { ...data }
-		world.setDynamicProperty(this.rawId, JSON.stringify(data));
+		if(this.database.isOpen) {
+			this.database._cachedHeaderData = { ...data }
+			this._modified = true;
+		}
+		else {
+			world.setDynamicProperty(this.rawId, JSON.stringify(data));
+			this._modified = false;
+		}
+	}
+	
+	save() {
+		if(!this._modified) return;
+		if(this.database.isOpen && this.database._cachedHeaderData !== null) {
+			world.setDynamicProperty(this.rawId, JSON.stringify(this.database._cachedHeaderData));
+		}
+		this._modified = false;
 	}
 
 	get createdAt(): Date {

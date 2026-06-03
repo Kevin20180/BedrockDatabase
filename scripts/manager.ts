@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import { world, system } from '@minecraft/server';
 import { Database } from './database';
 import type { DatabaseHeaderData } from './header';
 
@@ -26,7 +26,6 @@ export class DatabaseManager {
 		}
 
 		db = new Database(id);
-		
 		if(!db.isValid) return;
 
 		this._cachedDatabasesById.set(id, db);
@@ -60,3 +59,23 @@ export class DatabaseManager {
 }
 
 export const databaseManager = DatabaseManager.getInstance();
+
+system.runInterval(() => {
+	for(const db of databaseManager._cachedDatabasesById.values()) {
+		try {
+			db.save();
+		} catch(e) {
+			console.error(`Unsaved database '${db.id}':`, e);
+		}
+	}
+}, 200)
+
+system.beforeEvents.shutdown.subscribe((event) => {
+	for(const db of databaseManager._cachedDatabasesById.values()) {
+		try {
+			db.save();
+		} catch(e) {
+			console.error(`Unsaved database '${db.id}':`, e);
+		}
+	}
+})

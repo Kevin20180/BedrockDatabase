@@ -155,9 +155,13 @@ export class Database<T extends DataTypes = any> {
 
 	save() {
 		if(!this.isValid) throw Error('This database is invalid.');
+		
+		this.header.save();
 		if(!this._modified) return;
+		
 		if(this._cachedData === null) return;
 		else this._setDataSync(this._cachedData as T);
+		
 		this._modified = false;
 	}
 }
