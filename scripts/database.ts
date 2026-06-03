@@ -5,13 +5,15 @@ export class Database<T extends DataTypes = any> {
 	readonly id: string;
 	readonly header: DatabaseHeader;
 	_isOpen: boolean;
-	_cachedData: T | undefined;
-	_cachedHeaderData: DatabaseHeaderData | undefined;
+	_cachedData?: T | null;
+	_cachedHeaderData?: DatabaseHeaderData | null;
+	_modified: boolean;
 
 	constructor(id: string) {
 		this.id = id;
 		this._isOpen = false;
 		this.header = new DatabaseHeader(this, this.id);
+		this._modified = false;
 	}
 
 	get isValid(): boolean {
@@ -33,13 +35,15 @@ export class Database<T extends DataTypes = any> {
 			this.close();
 			throw e;
 		}
+
+		this.getData();
 	}
 
 	close() {
 		this._isOpen = false;
 		this.save();
-		this._cachedData = undefined;
-		this._cachedHeaderData = undefined;
+		this._cachedData = null;
+		this._cachedHeaderData = null;
 	}
 	
 	_getDataSync(): T | undefined {
@@ -116,23 +120,45 @@ export class Database<T extends DataTypes = any> {
 
 		this.header.dataType = dataType as PrimitiveDataTypes;
 		this.header.updatedAt = new Date();
+
+		if(dataType === 'object') this._cachedData = { ...data as Record<string, any> } as T;
+		else this._cachedData = data;
 	}
 
 	getData(): T | undefined {
 		if(!this.isValid) throw Error('This database is invalid.');
 		if(!this.isOpen) throw Error('The database is closed.');
-		return undefined;
+		
+		let data = this._cachedData;
+		if(data) return data;
+
+		data = this._getDataSync();
+		this._cachedData = data;
+
+		if(typeof data === 'object') return { ...data }
+		else return data;
 	}
 
 	setData(data: T) {
 		if(!this.isValid) throw Error('This database is invalid.');
 		if(!this.isOpen) throw Error('The database is closed.');
+
+		let dataType = typeof data;
+		if(dataType === 'object') this._cachedData = { ...data as Record<string, any> } as T;
+		else this._cachedData = data;
+
+		this.header.dataType = dataType as PrimitiveDataTypes;
+		this.header.updatedAt = new Date();
+
+		this._modified = true;
 	}
 
 	save() {
 		if(!this.isValid) throw Error('This database is invalid.');
-		if(!this._cachedData) return;
-		this._setDataSync(this._cachedData);
+		if(!this._modified) return;
+		if(this._cachedData === null) return;
+		else this._setDataSync(this._cachedData as T);
+		this._modified = false;
 	}
 }
 
