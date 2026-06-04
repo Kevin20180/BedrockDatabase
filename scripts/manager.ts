@@ -1,5 +1,5 @@
 import { world, system } from '@minecraft/server';
-import { Database } from './database';
+import { Database, type DataTypes } from './database';
 import type { DatabaseHeaderData } from './header';
 
 export class DatabaseManager {
@@ -18,24 +18,24 @@ export class DatabaseManager {
 		return DatabaseManager.instance;
 	}
 
-	getDatabase(id: string): Database | undefined {
+	getDatabase<T extends DataTypes = DataTypes>(id: string): Database<T> | undefined {
 		let db = this._cachedDatabasesById.get(id);
 		if(db) {
-			if(db.isValid) return db
+			if(db.isValid) return db as Database<T>
 			else return;
 		}
 
-		db = new Database(id);
+		db = new Database<T>(id);
 		if(!db.isValid) return;
 
 		this._cachedDatabasesById.set(id, db);
 		db.open();
-		return db;
+		return db as Database<T>;
 	}
 
-	getOrCreateDatabase(id: string): Database {
+	getOrCreateDatabase<T extends DataTypes = DataTypes>(id: string): Database<T> {
 		let db = this.getDatabase(id);
-		if(db) return db;
+		if(db) return db as Database<T>;
 
 		const date = new Date();
 		let dateJson = date.toJSON();
@@ -50,11 +50,11 @@ export class DatabaseManager {
 		
 		world.setDynamicProperty('[db][header]' + id, JSON.stringify(headerData));
 
-		db = new Database(id);
+		db = new Database<T>(id);
 		this._cachedDatabasesById.set(id, db);
 
 		db.open();
-		return db;
+		return db as Database<T>;
 	}
 }
 

@@ -1,7 +1,7 @@
 import { world } from '@minecraft/server';
 import { DatabaseHeader, type DatabaseHeaderData } from './header';
 
-export class Database<T extends DataTypes = any> {
+export class Database<T extends DataTypes = DataTypes> {
 	readonly id: string;
 	readonly header: DatabaseHeader;
 	_isOpen: boolean;
