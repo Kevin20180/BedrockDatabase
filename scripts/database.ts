@@ -40,10 +40,16 @@ export class Database<T extends DataTypes = DataTypes> {
 	}
 
 	close() {
-		this._isOpen = false;
-		this.save();
-		this._cachedData = null;
-		this._cachedHeaderData = null;
+		if(!this._isOpen) return;
+
+		// salva ANTES de marcar como fechado: o header só é gravado enquanto o database está aberto
+		try {
+			this.save();
+		} finally {
+			this._isOpen = false;
+			this._cachedData = null;
+			this._cachedHeaderData = null;
+		}
 	}
 	
 	_getDataSync(): T | undefined {
@@ -99,8 +105,7 @@ export class Database<T extends DataTypes = DataTypes> {
 
 			let oldChunks = this.header.chunks;
 			let chunks = Math.ceil(rawData.length / 32767);
-			console.log('chunks', chunks)
-
+			
 			if(oldChunks > chunks) {
 				for(let i = chunks; i < oldChunks; i++) {
 					world.setDynamicProperty(`[db][data][${i}]${this.id}`);
@@ -155,14 +160,15 @@ export class Database<T extends DataTypes = DataTypes> {
 
 	save() {
 		if(!this.isValid) throw Error('This database is invalid.');
-		
+
+		// grava os dados primeiro: _setDataSync atualiza o header (chunks, data_type, updated_at)
+		if(this._modified && this._cachedData !== null) {
+			this._setDataSync(this._cachedData as T);
+			this._modified = false;
+		}
+
+		// e só depois grava o header, já com as alterações feitas acima
 		this.header.save();
-		if(!this._modified) return;
-		
-		if(this._cachedData === null) return;
-		else this._setDataSync(this._cachedData as T);
-		
-		this._modified = false;
 	}
 }
 
